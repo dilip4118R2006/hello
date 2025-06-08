@@ -8,12 +8,23 @@ import { auth } from '../utils/auth';
 import { storage } from '../utils/storage';
 import { BorrowRequest, Component, User as UserType } from '../types';
 
-interface AdminDashboardProps {
-  onLogout: () => void;
-  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
+interface NotificationHandlers {
+  showRequestSubmitted: (componentName: string, quantity: number) => void;
+  showRequestApproved: (componentName: string, quantity: number, adminNotes?: string) => void;
+  showRequestRejected: (componentName: string, quantity: number, reason?: string) => void;
+  showComponentCheckedOut: (componentName: string, quantity: number, dueDate: string) => void;
+  showComponentReturned: (componentName: string, quantity: number) => void;
+  showDueDateReminder: (componentName: string, quantity: number, daysLeft: number) => void;
+  showOverdueNotice: (componentName: string, quantity: number, daysOverdue: number) => void;
+  addNotification: (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', category: 'request' | 'approval' | 'rejection' | 'checkout' | 'return' | 'system') => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNotification }) => {
+interface AdminDashboardProps {
+  onLogout: () => void;
+  notificationHandlers: NotificationHandlers;
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, notificationHandlers }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [components, setComponents] = useState<Component[]>([]);
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
@@ -52,7 +63,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
 
     const component = components.find(c => c.id === request.componentId);
     if (!component || component.available < request.quantity) {
-      showNotification('Insufficient component availability', 'error');
+      notificationHandlers.addNotification(
+        'Approval Failed',
+        'Insufficient component availability',
+        'error',
+        'system'
+      );
       return;
     }
 
@@ -74,7 +90,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
     storage.updateComponent(updatedComponent);
 
     loadData();
-    showNotification(`Request approved for ${request.studentName}`, 'success');
+    
+    // Show notifications
+    notificationHandlers.addNotification(
+      'Request Approved',
+      `Approved ${request.studentName}'s request for ${request.componentName}`,
+      'success',
+      'approval'
+    );
+    
+    notificationHandlers.showRequestApproved(
+      request.componentName, 
+      request.quantity, 
+      updatedRequest.adminNotes
+    );
   };
 
   const handleRejectRequest = (requestId: string) => {
@@ -89,7 +118,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
     storage.updateRequest(updatedRequest);
 
     loadData();
-    showNotification(`Request rejected for ${request.studentName}`, 'info');
+    
+    // Show notifications
+    notificationHandlers.addNotification(
+      'Request Rejected',
+      `Rejected ${request.studentName}'s request for ${request.componentName}`,
+      'info',
+      'rejection'
+    );
+    
+    notificationHandlers.showRequestRejected(
+      request.componentName, 
+      request.quantity, 
+      'Request rejected by administrator'
+    );
   };
 
   const handleReturnComponent = (requestId: string) => {
@@ -115,12 +157,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
     storage.updateComponent(updatedComponent);
 
     loadData();
-    showNotification(`Component returned by ${request.studentName}`, 'success');
+    
+    // Show notifications
+    notificationHandlers.addNotification(
+      'Component Returned',
+      `${request.studentName} returned ${request.componentName}`,
+      'success',
+      'return'
+    );
+    
+    notificationHandlers.showComponentReturned(
+      request.componentName, 
+      request.quantity
+    );
   };
 
   const handleAddComponent = () => {
     if (!componentForm.name || !componentForm.category) {
-      showNotification('Please fill in all required fields', 'error');
+      notificationHandlers.addNotification(
+        'Validation Error',
+        'Please fill in all required fields',
+        'error',
+        'system'
+      );
       return;
     }
 
@@ -140,7 +199,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
       total: 0,
       location: ''
     });
-    showNotification('Component added successfully', 'success');
+    
+    notificationHandlers.addNotification(
+      'Component Added',
+      `Successfully added ${componentForm.name} to inventory`,
+      'success',
+      'system'
+    );
   };
 
   const handleEditComponent = (component: Component) => {
@@ -176,14 +241,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNo
       total: 0,
       location: ''
     });
-    showNotification('Component updated successfully', 'success');
+    
+    notificationHandlers.addNotification(
+      'Component Updated',
+      `Successfully updated ${componentForm.name}`,
+      'success',
+      'system'
+    );
   };
 
   const handleDeleteComponent = (componentId: string) => {
+    const component = components.find(c => c.id === componentId);
     if (confirm('Are you sure you want to delete this component?')) {
       storage.deleteComponent(componentId);
       loadData();
-      showNotification('Component deleted successfully', 'success');
+      notificationHandlers.addNotification(
+        'Component Deleted',
+        `Successfully deleted ${component?.name}`,
+        'info',
+        'system'
+      );
     }
   };
 

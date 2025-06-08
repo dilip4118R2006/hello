@@ -4,7 +4,7 @@ import { auth } from '../utils/auth';
 
 interface LoginFormProps {
   onLogin: () => void;
-  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
+  showNotification: (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', category: 'request' | 'approval' | 'rejection' | 'checkout' | 'return' | 'system') => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, showNotification }) => {
@@ -40,11 +40,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, showNotification 
         onLogin();
       } else {
         setError('Invalid credentials. Please check your username and password.');
-        showNotification('Invalid credentials. Please check your username and password.', 'error');
+        showNotification(
+          'Login Failed',
+          'Invalid credentials. Please check your username and password.',
+          'error',
+          'system'
+        );
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');
-      showNotification('An error occurred during login. Please try again.', 'error');
+      showNotification(
+        'Login Error',
+        'An error occurred during login. Please try again.',
+        'error',
+        'system'
+      );
     } finally {
       setLoading(false);
     }

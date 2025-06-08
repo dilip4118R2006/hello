@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './components/LoginForm';
 import { StudentDashboard } from './components/StudentDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
-import { NotificationSystem } from './components/NotificationSystem';
+import { NotificationPanel } from './components/NotificationPanel';
 import { useNotifications } from './hooks/useNotifications';
 import { auth } from './utils/auth';
 
@@ -10,7 +10,20 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'student' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
-  const { notifications, addNotification, removeNotification } = useNotifications();
+  const { 
+    notifications, 
+    addNotification, 
+    removeNotification, 
+    markAsRead, 
+    clearAll,
+    showRequestSubmitted,
+    showRequestApproved,
+    showRequestRejected,
+    showComponentCheckedOut,
+    showComponentReturned,
+    showDueDateReminder,
+    showOverdueNotice
+  } = useNotifications();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -27,14 +40,26 @@ function App() {
     if (currentUser) {
       setIsAuthenticated(true);
       setUserRole(currentUser.role);
-      addNotification(`Welcome back, ${currentUser.name}!`, 'success');
+      addNotification(
+        'Welcome Back!',
+        `Successfully logged in as ${currentUser.name}`,
+        'success',
+        'system',
+        5000
+      );
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole(null);
-    addNotification('Successfully logged out', 'info');
+    addNotification(
+      'Logged Out',
+      'You have been successfully logged out',
+      'info',
+      'system',
+      3000
+    );
   };
 
   if (loading) {
@@ -50,28 +75,69 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <>
+      <div className="relative">
         <LoginForm onLogin={handleLogin} showNotification={addNotification} />
-        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
-      </>
+        {/* Notification Panel for login page */}
+        <div className="fixed top-4 right-4 z-50">
+          <NotificationPanel 
+            notifications={notifications} 
+            onRemove={removeNotification}
+            onMarkAsRead={markAsRead}
+            onClearAll={clearAll}
+          />
+        </div>
+      </div>
     );
   }
 
+  const notificationHandlers = {
+    showRequestSubmitted,
+    showRequestApproved,
+    showRequestRejected,
+    showComponentCheckedOut,
+    showComponentReturned,
+    showDueDateReminder,
+    showOverdueNotice,
+    addNotification
+  };
+
   if (userRole === 'admin') {
     return (
-      <>
-        <AdminDashboard onLogout={handleLogout} showNotification={addNotification} />
-        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
-      </>
+      <div className="relative">
+        <AdminDashboard 
+          onLogout={handleLogout} 
+          notificationHandlers={notificationHandlers}
+        />
+        {/* Notification Panel in header */}
+        <div className="fixed top-4 right-4 z-50">
+          <NotificationPanel 
+            notifications={notifications} 
+            onRemove={removeNotification}
+            onMarkAsRead={markAsRead}
+            onClearAll={clearAll}
+          />
+        </div>
+      </div>
     );
   }
 
   if (userRole === 'student') {
     return (
-      <>
-        <StudentDashboard onLogout={handleLogout} showNotification={addNotification} />
-        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
-      </>
+      <div className="relative">
+        <StudentDashboard 
+          onLogout={handleLogout} 
+          notificationHandlers={notificationHandlers}
+        />
+        {/* Notification Panel in header */}
+        <div className="fixed top-4 right-4 z-50">
+          <NotificationPanel 
+            notifications={notifications} 
+            onRemove={removeNotification}
+            onMarkAsRead={markAsRead}
+            onClearAll={clearAll}
+          />
+        </div>
+      </div>
     );
   }
 

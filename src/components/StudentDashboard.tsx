@@ -4,12 +4,23 @@ import { auth } from '../utils/auth';
 import { storage } from '../utils/storage';
 import { BorrowRequest, Component } from '../types';
 
-interface StudentDashboardProps {
-  onLogout: () => void;
-  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
+interface NotificationHandlers {
+  showRequestSubmitted: (componentName: string, quantity: number) => void;
+  showRequestApproved: (componentName: string, quantity: number, adminNotes?: string) => void;
+  showRequestRejected: (componentName: string, quantity: number, reason?: string) => void;
+  showComponentCheckedOut: (componentName: string, quantity: number, dueDate: string) => void;
+  showComponentReturned: (componentName: string, quantity: number) => void;
+  showDueDateReminder: (componentName: string, quantity: number, daysLeft: number) => void;
+  showOverdueNotice: (componentName: string, quantity: number, daysOverdue: number) => void;
+  addNotification: (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', category: 'request' | 'approval' | 'rejection' | 'checkout' | 'return' | 'system') => void;
 }
 
-export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout, showNotification }) => {
+interface StudentDashboardProps {
+  onLogout: () => void;
+  notificationHandlers: NotificationHandlers;
+}
+
+export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout, notificationHandlers }) => {
   const [activeTab, setActiveTab] = useState('request');
   const [components, setComponents] = useState<Component[]>([]);
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
@@ -46,12 +57,22 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout, sh
     try {
       const component = components.find(c => c.id === selectedComponent);
       if (!component) {
-        showNotification('Please select a valid component', 'error');
+        notificationHandlers.addNotification(
+          'Invalid Component',
+          'Please select a valid component',
+          'error',
+          'system'
+        );
         return;
       }
 
       if (quantity > component.available) {
-        showNotification(`Only ${component.available} units available`, 'error');
+        notificationHandlers.addNotification(
+          'Insufficient Stock',
+          `Only ${component.available} units available for ${component.name}`,
+          'error',
+          'system'
+        );
         return;
       }
 
@@ -87,10 +108,16 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout, sh
       setQuantity(1);
       setDueDate('');
       
-      showNotification('Request submitted successfully! Admin will review shortly.', 'success');
+      // Show success notification
+      notificationHandlers.showRequestSubmitted(component.name, quantity);
       setActiveTab('status');
     } catch (error) {
-      showNotification('Failed to submit request. Please try again.', 'error');
+      notificationHandlers.addNotification(
+        'Request Failed',
+        'Failed to submit request. Please try again.',
+        'error',
+        'system'
+      );
     } finally {
       setLoading(false);
     }
