@@ -166,7 +166,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
                       onClick={() => onMarkAsRead(notification.id)}
                     >
                       {!notification.read && (
-                        <div className="absolute top-2 right-6 w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full"></div>
                       )}
                       
                       <div className="flex items-start space-x-3">
