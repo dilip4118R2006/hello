@@ -6,14 +6,14 @@ import {
 } from 'lucide-react';
 import { auth } from '../utils/auth';
 import { storage } from '../utils/storage';
-import { showNotification } from '../utils/notifications';
 import { BorrowRequest, Component, User as UserType } from '../types';
 
 interface AdminDashboardProps {
   onLogout: () => void;
+  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, showNotification }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [components, setComponents] = useState<Component[]>([]);
   const [requests, setRequests] = useState<BorrowRequest[]>([]);

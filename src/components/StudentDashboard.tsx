@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { User, Package, Calendar, Phone, LogOut, Plus, Clock, CheckCircle, AlertCircle, Award, TrendingUp } from 'lucide-react';
 import { auth } from '../utils/auth';
 import { storage } from '../utils/storage';
-import { showNotification } from '../utils/notifications';
 import { BorrowRequest, Component } from '../types';
 
 interface StudentDashboardProps {
   onLogout: () => void;
+  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout }) => {
+export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onLogout, showNotification }) => {
   const [activeTab, setActiveTab] = useState('request');
   const [components, setComponents] = useState<Component[]>([]);
   const [requests, setRequests] = useState<BorrowRequest[]>([]);

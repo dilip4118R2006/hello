@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './components/LoginForm';
 import { StudentDashboard } from './components/StudentDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
+import { NotificationSystem } from './components/NotificationSystem';
+import { useNotifications } from './hooks/useNotifications';
 import { auth } from './utils/auth';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'student' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
+  const { notifications, addNotification, removeNotification } = useNotifications();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -24,12 +27,14 @@ function App() {
     if (currentUser) {
       setIsAuthenticated(true);
       setUserRole(currentUser.role);
+      addNotification(`Welcome back, ${currentUser.name}!`, 'success');
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole(null);
+    addNotification('Successfully logged out', 'info');
   };
 
   if (loading) {
@@ -44,15 +49,30 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} />;
+    return (
+      <>
+        <LoginForm onLogin={handleLogin} showNotification={addNotification} />
+        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
+      </>
+    );
   }
 
   if (userRole === 'admin') {
-    return <AdminDashboard onLogout={handleLogout} />;
+    return (
+      <>
+        <AdminDashboard onLogout={handleLogout} showNotification={addNotification} />
+        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
+      </>
+    );
   }
 
   if (userRole === 'student') {
-    return <StudentDashboard onLogout={handleLogout} />;
+    return (
+      <>
+        <StudentDashboard onLogout={handleLogout} showNotification={addNotification} />
+        <NotificationSystem notifications={notifications} onRemove={removeNotification} />
+      </>
+    );
   }
 
   return null;

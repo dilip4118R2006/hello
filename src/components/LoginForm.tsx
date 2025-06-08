@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Settings, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { auth } from '../utils/auth';
-import { showNotification } from '../utils/notifications';
 
 interface LoginFormProps {
   onLogin: () => void;
+  showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, showNotification }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,13 +37,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
       const user = auth.login(email, password);
       
       if (user) {
-        showNotification(`Welcome back, ${user.name}!`, 'success');
         onLogin();
       } else {
         setError('Invalid credentials. Please check your username and password.');
+        showNotification('Invalid credentials. Please check your username and password.', 'error');
       }
     } catch (err) {
       setError('An error occurred during login. Please try again.');
+      showNotification('An error occurred during login. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
