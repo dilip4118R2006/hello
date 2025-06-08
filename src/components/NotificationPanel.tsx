@@ -112,7 +112,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
           />
           
           {/* Panel */}
-          <div className="absolute top-full right-0 mt-2 w-96 max-h-[600px] bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl z-50 overflow-hidden">
+          <div className="absolute top-full right-4 mt-2 w-96 max-h-[600px] bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl z-50 overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
               <div>
